@@ -1,15 +1,20 @@
 const jwt = require("jsonwebtoken");
+require("dotenv").config(); // Charge les variables d'environnement
 
 module.exports = (req, res, next) => {
   try {
-    const token = req.headers.authorization.split(" ")[1];
-    const decodedToken = jwt.verify(token, "RANDOM_TOKEN_SECRET");
-    const userId = decodedToken.userId;
-    req.auth = {
-      userId: userId,
-    };
+    const authorizationHeader = req.headers.authorization;
+
+    if (!authorizationHeader) {
+      return res.status(401).json({ message: "Authentification requise" });
+    }
+
+    const token = authorizationHeader.split(" ")[1];
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+    req.auth = { userId: decodedToken.userId };
     next();
   } catch (error) {
-    res.status(401).json({ error });
+    return res.status(403).json({ message: "Token invalide" });
   }
 };
