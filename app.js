@@ -4,11 +4,10 @@ const mongoose = require("mongoose");
 const bookRoutes = require("./routes/book");
 const userRoutes = require("./routes/user");
 const path = require("path");
+require("dotenv").config();
 
 mongoose
-  .connect(
-    "mongodb+srv://Jyrenn:Bleach2710.@cluster0.elo26.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-  )
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("Connexion à MongoDB réussie !"))
   .catch(() => console.log("Connexion à MongoDB échouée !"));
 
