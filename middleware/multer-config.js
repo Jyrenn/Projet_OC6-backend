@@ -1,32 +1,34 @@
 const multer = require("multer");
 const sharp = require("sharp");
 const fs = require("fs");
+const path = require("path");
 
-const MIME_TYPES = {
-  "image/jpg": "jpg",
-  "image/jpeg": "jpg",
-  "image/png": "png",
-};
-
-const storage = multer.memoryStorage(); // Stockage temporaire en mémoire
-
+// Stockage temporaire en mémoire
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage }).single("image");
 
 const optimizeImage = async (req, res, next) => {
-  if (!req.file) return next();
+  if (!req.file) return next(); // Si pas d’image, on passe au middleware suivant
 
-  const extension = MIME_TYPES[req.file.mimetype] || "jpg"; // Fallback sur jpg
-  const filename = `images/${req.file.originalname
-    .split(" ")
-    .join("_")}_${Date.now()}.${extension}`;
+  const filename = `image_${Date.now()}.webp`; // Nom unique en .webp
+  const outputPath = path.join(__dirname, "../images/", filename);
 
   try {
-    await sharp(req.file.buffer)
-      .resize(800) // Redimensionner à une largeur max de 800px
-      .jpeg({ quality: 70 }) // Convertir en JPEG avec 70% de qualité
-      .toFile(filename);
+    // Vérifier si le dossier 'images/' existe, sinon le créer
+    if (!fs.existsSync(path.join(__dirname, "../images/"))) {
+      fs.mkdirSync(path.join(__dirname, "../images/"), { recursive: true });
+    }
 
-    req.file.filename = filename.split("/")[1]; // Mettre à jour le nom du fichier
+    // Conversion et optimisation de l’image
+    await sharp(req.file.buffer)
+      .resize({ width: 800 }) // Redimensionnement max 800px de largeur
+      .webp({ quality: 70 }) // Conversion en WebP avec compression
+      .toFile(outputPath);
+
+    // Mise à jour de l’objet req.file pour l'utiliser dans le contrôleur
+    req.file.filename = filename;
+    req.file.path = outputPath;
+
     next();
   } catch (error) {
     console.error("Erreur d'optimisation de l'image :", error);
