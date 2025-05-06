@@ -6,12 +6,11 @@ exports.createBook = (req, res, next) => {
   delete bookObject._id;
   delete bookObject._userId;
   const book = new Book({
-    ...bookObject,
-    userId: req.auth.userId,
-    imageUrl: `${req.protocol}://${req.get("host")}/images/${
-      req.file.filename
-    }`,
-  });
+  ...bookObject,
+  userId: req.auth.userId,
+  imageUrl: `${process.env.BACKEND_URL}/images/${req.file.filename}`,
+});
+
 
   book
     .save()
@@ -23,9 +22,7 @@ exports.modifyBook = (req, res, next) => {
   const bookObject = req.file
     ? {
         ...JSON.parse(req.body.book),
-        imageUrl: `${req.protocol}://${req.get("host")}/images/${
-          req.file.filename
-        }`,
+        imageUrl: `${process.env.BACKEND_URL}/images/${req.file.filename}`,
       }
     : { ...req.body };
 
